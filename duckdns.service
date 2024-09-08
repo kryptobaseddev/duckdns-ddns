@@ -1,0 +1,12 @@
+[Unit]
+Description=DuckDNS Updater Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /home/pi/duckdns/duck.sh
+EnvironmentFile=/home/pi/duckdns/config.env
+WorkingDirectory=/home/pi/duckdns
+
+[Install]
+WantedBy=multi-user.target
