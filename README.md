@@ -7,7 +7,7 @@ This package will automatically update your DuckDNS domain with the current IP a
 1. Clone the repository:
     ```bash
     git clone https://github.com/kryptobaseddev/duckdns-ddns.git
-    cd duckdns-updater
+    cd duckdns-dns
     ```
 
 2. Configure your DuckDNS domain and token:
@@ -36,3 +36,10 @@ This package will automatically update your DuckDNS domain with the current IP a
 
 - Access your router settings and set up port forwarding for the desired port (HTTP, SSH, etc.).
 - Forward external traffic on a specific port (e.g., 8080) to your Raspberry Pi’s internal IP address (e.g., 192.168.1.10) and the corresponding internal port (e.g., 80 or 22 for SSH).
+
+Note: make sure to have Git installed so when you ssh into the device you can clone the repository.
+use the following command to install git:
+```bash
+sudo apt update
+sudo apt install git
+```
