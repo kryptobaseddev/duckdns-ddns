@@ -7,7 +7,7 @@ This package will automatically update your DuckDNS domain with the current IP a
 1. Clone the repository:
     ```bash
     git clone https://github.com/kryptobaseddev/duckdns-ddns.git
-    cd duckdns-dns
+    cd duckdns-ddns
     ```
 
 2. Configure your DuckDNS domain and token:
