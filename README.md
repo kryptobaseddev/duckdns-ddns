@@ -157,8 +157,9 @@ After configuring the port forwarding, save the settings. You can now access you
 ### 7. Testing Remote Access
 To test if everything is working, try accessing your Raspberry Pi from outside your network using your DuckDNS domain. If you’ve forwarded SSH (port 22), for example:
 
-```bash
-ssh pi@yourdomain.duckdns.org -p 22
+    ```bash
+    ssh pi@yourdomain.duckdns.org -p 22
+    ```
 
 ## Troubleshooting
 - Git Not Installed: If you receive an error saying git: command not found, you may need to install Git by running:
