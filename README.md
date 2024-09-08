@@ -57,31 +57,34 @@ Once connected to your Raspberry Pi via SSH, you can clone the DuckDNS updater r
 
 This will download the repository and switch to the `duckdns-ddns` directory.
 
-### 3. Configure DuckDNS Domain and Token
+### 3. Prepare the `duck.sh` Script
 
-You need to provide your DuckDNS token and domain in a configuration file.
+The `duck.sh` script is used to update DuckDNS with your Raspberry Pi's external IP.
 
-1. Open the configuration file for editing:
+1. Make the `duck.sh` script executable by running the following command:
     ```bash
-    nano config.env
+    chmod +x duck.sh
     ```
 
-2. Inside the `nano` editor, you will see a blank file. Type or paste the following:
-
+2. **Verify** that the `duck.sh` script is using the **hardcoded** DuckDNS domain and token (for now):
     ```bash
-    TOKEN="your-duckdns-token"
-    DOMAIN="your-domain"
+    nano duck.sh
     ```
 
-    Replace `"your-duckdns-token"` with your actual DuckDNS token and `"your-domain"` with your DuckDNS domain name (e.g., `yourdomain`).
+    Ensure it looks something like this:
 
-3. **How to Use Nano**:
-    - To **save and exit**:
-      - Press `CTRL + X` to exit.
-      - Press `Y` to confirm saving.
-      - Press `Enter` to confirm the filename (`config.env`).
+    ```bash
+    #!/bin/bash
 
-Now your DuckDNS configuration is ready.
+    # Perform the DuckDNS update
+    echo "Updating DuckDNS for domain yourdomain"
+    curl "https://www.duckdns.org/update?domains=yourdomain&token=6f247643-your-token-953bfe70a016&ip=" -k -o ~/duckdns-ddns/duckdns.log
+
+    # Log the result
+    echo "DuckDNS update complete. Log available at ~/duckdns-ddns/duckdns.log"
+    ```
+
+    Once confirmed, save the file (`CTRL + X`, then `Y`, and `Enter`).
 
 ### 4. Install the Service
 
@@ -111,7 +114,9 @@ To check the status of the service at any time, you can use:
     ```bash
     sudo systemctl status duckdns.service
     ```
+
 ### 5. (Optional) Install a Timer for Scheduled Updates
+
 If you prefer to use a systemd timer instead of cron for updating your IP every 5 minutes, you can set up a timer.
 
 1. Copy the timer file to the systemd folder:
@@ -137,6 +142,7 @@ If you prefer to use a systemd timer instead of cron for updating your IP every 
 This will ensure the DuckDNS updater runs every 5 minutes to check and update the external IP address.
 
 ### 6. Configure Router for Remote Access
+
 To access your Raspberry Pi from outside your local network (e.g., from the internet), you will need to set up port forwarding on your router.
 
 #### A. Access Your Router Settings
@@ -161,11 +167,70 @@ To test if everything is working, try accessing your Raspberry Pi from outside y
     ssh pi@yourdomain.duckdns.org -p 22
     ```
 
-## Troubleshooting
-- Git Not Installed: If you receive an error saying git: command not found, you may need to install Git by running:
+---
+
+### 8. How to Set a Static IP on Raspberry Pi
+
+To ensure your Raspberry Pi keeps the same IP address on your network, you can configure a static IP address by editing the `dhcpcd.conf` file.
+
+#### A. **Find the Current Network Information**
+First, get your current network details by running:
+```bash
+ip addr show
+```
+
+#### B. **Edit the `dhcpcd.conf` File**
+1. Open the `dhcpcd.conf` file for editing:
     ```bash
-    sudo apt update
-    sudo apt install git
+    sudo nano /etc/dhcpcd.conf
+    ```
+2. Scroll to the bottom of the file and add the following lines, replacing the values with your desired static IP, router IP (gateway), and DNS server:
+    ```bash
+    interface wlan0  # For Wi-Fi (use eth0 for Ethernet)
+    static ip_address=10.0.0.138/24  # Your desired static IP and subnet mask
+    static routers=10.0.0.1  # Your router's IP (gateway)
+    static domain_name_servers=8.8.8.8 8.8.4.4  # Google's DNS or your preferred DNS
+    ```
+3. Save the file (`CTRL + X`, then `Y`, and `Enter`).
+
+#### C. **Restart the Raspberry Pi**
+- After saving the changes, restart your Raspberry Pi for the new static IP to take effect:
+    ```bash
+    sudo reboot
     ```
 
-- SSH Permission Denied: If you receive a "Permission Denied" error while trying to SSH into the Pi, double-check the IP address and credentials. Ensure that SSH is enabled and the correct password is being used.
+### D. Verify the Static IP
+- After the Pi reboots, check if the static IP is set correctly by running:
+    ```bash
+    ip addr show
+    ```
+
+## Troubleshooting
+- **Git Not Installed:** If you receive a “git command not found” error, install Git using the commands provided in the prerequisites section.
+    - Install Git using the following commands:
+        ```bash
+        sudo apt update
+        sudo apt install git
+        ```
+- **Permission Denied:** If you receive a “Permission Denied” error while running the `chmod +x duck.sh` command, ensure you’re running it with `sudo`.
+- **SSH Permission Denied:** If you receive a "Permission Denied" error while trying to SSH into the Pi, double-check the IP address and credentials. Ensure that SSH is enabled and the correct password is being used.
+    - You can enable SSH alternatively by creating an empty file named `ssh` in the boot partition of the SD card.
+        - Once the file is created, insert the SD card back into the Pi and boot it up.
+        - SSH should now be enabled, and you can connect to the Pi using the default credentials.
+        - Remember to change the default password for security reasons.
+        - If you need to keep SSH enabled, you can now run the `sudo systemctl enable ssh` command to ensure it starts on boot.
+    - If you’ve set up a static IP, ensure you’re using the correct IP address to connect.
+    - If you’re still unable to connect, try connecting via the local network first to troubleshoot.
+    - If you’re using a firewall, ensure that the port you’re trying to connect to is open.
+    - If you’re using a VPN, ensure that the VPN is not blocking the connection.
+    - If you’re using a public Wi-Fi network, ensure that the network allows SSH connections.
+
+## Future Improvements
+- **Dynamic Domain and Token:** Implement a way to pass the DuckDNS domain and token as arguments to the script for better security using the `config.env` file.
+- **Logging and Error Handling:** Add more detailed logging and error handling to the script for better troubleshooting.
+- **User Input Validation:** Validate user input for the DuckDNS domain and token to prevent incorrect entries.
+- **Custom Update Interval:** Allow users to set a custom update interval for the DuckDNS updater service.
+- **Secure Communication:** Implement secure communication between the Raspberry Pi and DuckDNS for updating the IP address.
+- **Web Interface:** Create a simple web interface to configure the DuckDNS updater settings and view logs.
+- **Email Notifications:** Add email notifications for successful or failed IP updates to keep users informed.
+- **Backup and Restore:** Implement a backup and restore feature for the DuckDNS updater settings and logs.
